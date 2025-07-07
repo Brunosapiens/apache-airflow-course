@@ -1,10 +1,19 @@
 # VS Code
 .vscode/*
+!.vscode/settings.json
 
 # Python
 __pycache__/
+*.py[cod]
 .venv/
+.env/
 
 # Airflow
 airflow.db
 logs/
+airflow-webserver.pid
+airflow.cfg
+webserver_config.py
+
+# Sistema
+.DS_Store
