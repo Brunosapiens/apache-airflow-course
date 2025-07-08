@@ -1,32 +1,22 @@
-from airflow import DAG
-from airflow.operators.python import PythonOperator
+from airflow.decorators import dag, task
 from datetime import datetime
 
-def extract(ti):
-    ti.xcom_push(key="primeiro_valor", value=10)
-    ti.xcom_push(key="segundo_valor", value=20)
-
-def transform(ti):
-    primeiro_valor = ti.xcom_pull(key="primeiro_valor", task_ids='extract_task')
-    segundo_valor = ti.xcom_pull(key="segundo_valor", task_ids='extract_task')
-    print(f"Valores XCOM: {primeiro_valor} e {segundo_valor}")
-
-with DAG(
-    dag_id='xcom_atualizado',
+@dag(
+    dag_id='05_xcom_fixed',
     start_date=datetime(2025, 7, 7),
-    schedule_interval=None,
-    catchup=False,
-    tags=['exemplo_xcom']
-) as dag:
+    schedule=None,
+    catchup=False
+)
+def xcom_example():
+    
+    @task
+    def extract():
+        return {"primeiro_valor": 10, "segundo_valor": 20}
+    
+    @task
+    def transform(valores: dict):
+        print(f"Valores: {valores['primeiro_valor']}, {valores['segundo_valor']}")
+    
+    transform(extract())
 
-    task_extract = PythonOperator(
-        task_id='extract_task',
-        python_callable=extract
-    )
-
-    task_transform = PythonOperator(
-        task_id='transform_task',
-        python_callable=transform
-    )
-
-    task_extract >> task_transform
+dag = xcom_example()

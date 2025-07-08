@@ -1,32 +1,26 @@
-from airflow import DAG
-from airflow.operators.python import PythonOperator
+from airflow.decorators import dag, task
 from datetime import datetime
+import json
 
-def extract():
-    return {"primeiro_valor": 100, "segundo_valor": 400}
-
-def transform(JSON, **kwargs):
-    print(f"XCOM recebido via Jinja template: {JSON}")
-    print(f"Tipo do dado: {type(JSON)}")
-
-with DAG(
-    dag_id='08-xcoms-com-jinja-template',
+@dag(
+    dag_id='08_xcom_jinja_fixed_v2',
     start_date=datetime(2025, 7, 7),
-    schedule_interval=None,
-    catchup=False
-) as dag:
+    schedule=None,
+    catchup=False,
+    tags=['xcom']
+)
+def xcom_pipeline():
     
-    task1 = PythonOperator(
-        task_id='extract_task',
-        python_callable=extract
-    )
+    @task
+    def extract():
+        return {'primeiro_valor': 100, 'segundo_valor': 400}
     
-    task2 = PythonOperator(
-        task_id='transform_task',
-        python_callable=transform,
-        op_kwargs={
-            "JSON": "{{ ti.xcom_pull(task_ids='extract_task') }}"
-        }
-    )
+    @task
+    def transform(json_str: str):
+        data = json.loads(json_str)
+        print(f"Valores transformados: {data['primeiro_valor']}, {data['segundo_valor']}")
+        return data
     
-    task1 >> task2
+    transform("{{ ti.xcom_pull(task_ids='extract') | tojson }}") << extract()
+
+dag = xcom_pipeline()

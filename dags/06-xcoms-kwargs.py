@@ -1,33 +1,22 @@
-from airflow import DAG
-from airflow.operators.python import PythonOperator
+from airflow.decorators import dag, task
 from datetime import datetime
 
-def extract(**context):
-    ti = context['ti']
-    ti.xcom_push(key="primeiro_valor", value='10')
-    ti.xcom_push(key="segundo_valor", value='20')
-
-def transform(**context):
-    ti = context['ti']
-    primeiro_valor = ti.xcom_pull(key='primeiro_valor', task_ids='extract_task')
-    segundo_valor = ti.xcom_pull(key='segundo_valor', task_ids='extract_task')
-    print(f"XCOM são {primeiro_valor} e {segundo_valor}")
-
-with DAG(
-    dag_id='06-xcoms-context',
+@dag(
+    dag_id='06_kwargs_fixed',
     start_date=datetime(2025, 7, 7),
-    schedule_interval=None,
-    catchup=False
-) as dag:
+    schedule=None
+)
+def xcom_kwargs_example():
     
-    task1 = PythonOperator(
-        task_id='extract_task',
-        python_callable=extract
-    )
+    @task
+    def extract(**context):
+        context["ti"].xcom_push(key="dados", value={"val1": 100, "val2": 200})
     
-    task2 = PythonOperator(
-        task_id='transform_task',
-        python_callable=transform
-    )
+    @task
+    def transform(**context):
+        dados = context["ti"].xcom_pull(task_ids="extract", key="dados")
+        print(f"Dados: {dados['val1']}, {dados['val2']}")
     
-    task1 >> task2
+    transform() << extract()
+
+dag = xcom_kwargs_example()
