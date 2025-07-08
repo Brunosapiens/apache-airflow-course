@@ -7,8 +7,8 @@ def extract(ti):
     ti.xcom_push(key="segundo_valor", value=20)
 
 def transform(ti):
-    primeiro_valor = ti.xcom_pull(key="primeiro_valor", task_ids='extract')
-    segundo_valor = ti.xcom_pull(key="segundo_valor", task_ids='extract')
+    primeiro_valor = ti.xcom_pull(key="primeiro_valor", task_ids='extract_task')
+    segundo_valor = ti.xcom_pull(key="segundo_valor", task_ids='extract_task')
     print(f"Valores XCOM: {primeiro_valor} e {segundo_valor}")
 
 with DAG(

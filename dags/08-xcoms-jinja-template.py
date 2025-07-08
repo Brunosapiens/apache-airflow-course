@@ -5,11 +5,9 @@ from datetime import datetime
 def extract():
     return {"primeiro_valor": 100, "segundo_valor": 400}
 
-def transform(JSON):
-    import json
-    dados = json.loads(str(JSON))
-    print(f"XCOM são {dados}")
-    print(f"Tipo de dado é {type(dados)}")
+def transform(JSON, **kwargs):
+    print(f"XCOM recebido via Jinja template: {JSON}")
+    print(f"Tipo do dado: {type(JSON)}")
 
 with DAG(
     dag_id='08-xcoms-com-jinja-template',
@@ -19,15 +17,15 @@ with DAG(
 ) as dag:
     
     task1 = PythonOperator(
-        task_id='extract',
+        task_id='extract_task',
         python_callable=extract
     )
     
     task2 = PythonOperator(
-        task_id='transform',
+        task_id='transform_task',
         python_callable=transform,
         op_kwargs={
-            "JSON": "{{ ti.xcom_pull(task_ids='extract') }}"
+            "JSON": "{{ ti.xcom_pull(task_ids='extract_task') }}"
         }
     )
     

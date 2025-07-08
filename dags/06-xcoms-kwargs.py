@@ -9,8 +9,8 @@ def extract(**context):
 
 def transform(**context):
     ti = context['ti']
-    primeiro_valor = ti.xcom_pull(key='primeiro_valor', task_ids='extract')
-    segundo_valor = ti.xcom_pull(key='segundo_valor', task_ids='extract')
+    primeiro_valor = ti.xcom_pull(key='primeiro_valor', task_ids='extract_task')
+    segundo_valor = ti.xcom_pull(key='segundo_valor', task_ids='extract_task')
     print(f"XCOM são {primeiro_valor} e {segundo_valor}")
 
 with DAG(
@@ -21,12 +21,12 @@ with DAG(
 ) as dag:
     
     task1 = PythonOperator(
-        task_id='extract',
+        task_id='extract_task',
         python_callable=extract
     )
     
     task2 = PythonOperator(
-        task_id='transform',
+        task_id='transform_task',
         python_callable=transform
     )
     
